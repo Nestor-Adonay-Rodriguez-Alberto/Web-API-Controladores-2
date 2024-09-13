@@ -2,7 +2,6 @@
 using Microsoft.EntityFrameworkCore;
 using Web_API_Controladores_2.Models;
 
-// For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
 namespace Web_API_Controladores_2.Controllers
 {
@@ -10,16 +9,20 @@ namespace Web_API_Controladores_2.Controllers
     [ApiController]
     public class EmpleadoController : ControllerBase
     {
-        // REPRESENTA DB:
+        // Representa La DB:
         private readonly DBContext _DBContext;
 
-        // CONTRUCTOR:
+        // Constructor:
         public EmpleadoController(DBContext dbContext)
         {
             _DBContext = dbContext;
         }
 
-        // GET: api/<EmpleadoController>
+
+
+        // **************** ENDPOINTS QUE MANDARAN OBJETOS *****************
+        // *****************************************************************
+
         // OBTIENE TODOS LOS REGISTROS DE LA DB:
         [HttpGet]
         public async Task<List<Empleado>> Get()
@@ -30,14 +33,21 @@ namespace Web_API_Controladores_2.Controllers
         }
 
 
-        // GET api/<EmpleadoController>/5
+        // OBTIENE UN REGISTRO CON EL MISMO ID:
         [HttpGet("{id}")]
-        public string Get(int id)
+        public async Task<Empleado> Get(int id)
         {
-            return "value";
+            Empleado Objeto_Obtenido = await _DBContext.Empleados.FirstOrDefaultAsync(x => x.IdEmpleado == id);
+
+            return Objeto_Obtenido;
         }
 
-        // POST api/<EmpleadoController>
+
+
+
+        // *******  ENPOINTS QUE RECIBIRAN OBJETOS Y MODIFICARAN LA DB  *******
+        // ********************************************************************
+
         // RECIBE UN OBJETO Y LO GUARDA EN LA DB:
         [HttpPost]
         public async Task<IActionResult> Post([FromBody] Empleado empleado)
@@ -48,16 +58,54 @@ namespace Web_API_Controladores_2.Controllers
             return Ok("Guardado Correctamente");
         }
 
-        // PUT api/<EmpleadoController>/5
+
+        // BUSCA UN REGISTRO CON EL MISMO ID EN LA DB Y LO MODIFICA
         [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
+        public async Task<IActionResult> Put(int id, [FromBody] Empleado empleado)
         {
+            Empleado? Objeto_Obtenido = await _DBContext.Empleados.FirstOrDefaultAsync(x => x.IdEmpleado == id);
+
+            if (Objeto_Obtenido != null)
+            {
+                Objeto_Obtenido.Nombre = empleado.Nombre;
+                Objeto_Obtenido.Salaraio = empleado.Salaraio;
+                Objeto_Obtenido.FechaNacimiento = empleado.FechaNacimiento;
+                Objeto_Obtenido.Email = empleado.Email;
+
+                // Actualizamos:
+                _DBContext.Update(Objeto_Obtenido);
+                await _DBContext.SaveChangesAsync();
+
+                return Ok("Modificado Exitosamente.");
+            }
+            else
+            {
+                return NotFound("No Se Encontro El Registro.");
+            }
+
         }
 
-        // DELETE api/<EmpleadoController>/5
+
+        // BUSCA UN REGISTRO CON EL MISMO ID EN LA DB Y LO ELIMINA:
         [HttpDelete("{id}")]
-        public void Delete(int id)
+        public async Task<IActionResult> Delete(int id)
         {
+            Empleado? Objeto_Obtenido = await _DBContext.Empleados.FirstOrDefaultAsync(x => x.IdEmpleado == id);
+
+            if (Objeto_Obtenido != null)
+            {
+                _DBContext.Remove(Objeto_Obtenido);
+                await _DBContext.SaveChangesAsync();
+
+                return Ok("Eliminado Correctamente.");
+            }
+            else
+            {
+                return NotFound("No Se Encontro El Registro.");
+            }
+
         }
+
+
     }
 }
